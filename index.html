@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08090a" />
+  <meta name="description" content="NoxCipher Scripts: copy-and-run security and ops scripts for Linux, Windows, Sentinel and firewalls." />
+  <title>NoxCipher Scripts</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2048%2048'%3E%3Crect%20width%3D'48'%20height%3D'48'%20rx%3D'10'%20fill%3D'%2308090a'/%3E%3Cdefs%3E%3Cpath%20id%3D'n'%20d%3D'M10%208H16L32%2030V8H38V40H32L16%2018V40H10Z'/%3E%3CclipPath%20id%3D'a'%3E%3Crect%20width%3D'48'%20height%3D'18'/%3E%3C/clipPath%3E%3CclipPath%20id%3D'b'%3E%3Crect%20y%3D'20'%20width%3D'48'%20height%3D'8'/%3E%3C/clipPath%3E%3CclipPath%20id%3D'c'%3E%3Crect%20y%3D'30'%20width%3D'48'%20height%3D'18'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg%20clip-path%3D'url(%23a)'%3E%3Cuse%20href%3D'%23n'%20fill%3D'%23EDEDEA'/%3E%3C/g%3E%3Cg%20clip-path%3D'url(%23b)'%3E%3Cuse%20href%3D'%23n'%20fill%3D'%233DFFA2'%20transform%3D'translate(3%200)'/%3E%3C/g%3E%3Cg%20clip-path%3D'url(%23c)'%3E%3Cuse%20href%3D'%23n'%20fill%3D'%23EDEDEA'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08090a; --surface: #0e1011; --surface-2: #131617; --code: #060707;
+      --line: rgba(255,255,255,.08); --line-2: rgba(255,255,255,.14);
+      --text: #ededea; --muted: #8b9094; --faint: #5b6064;
+      --accent: #3dffa2; --accent-dim: rgba(61,255,162,.10);
+      --warn: #ffb547; --danger: #ff6b6b; --info: #7fb8ff;
+      --sans: 'Geist', system-ui, sans-serif; --mono: 'Geist Mono', ui-monospace, monospace;
+      --stick: 180px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 400 15px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+      background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px); background-size: 28px 28px;
+      mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 75%);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; }
+    ::selection { background: var(--accent); color: #04140b; }
+    .wrap { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+    .label { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    svg.i { width: 16px; height: 16px; flex: none; }
+
+    /* header */
+    header { position: sticky; top: 0; z-index: 40; background: rgba(8,9,10,.85); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .nav { height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+    .logo svg { width: 28px; height: 28px; color: var(--text); flex: none; }
+    .logo-word { font: 600 16px var(--sans); letter-spacing: -.01em; white-space: nowrap; }
+    .logo-word span { color: var(--muted); font-weight: 500; }
+    .logo-sub { font: 500 14px var(--mono); color: var(--accent); white-space: nowrap; }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line-2); background: transparent; font: 500 13px var(--sans); cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s; }
+    .btn:hover { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.24); }
+
+    /* hero */
+    .hero { padding: 48px 0 24px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+    h1 { margin: 12px 0 10px; font-size: clamp(2.2rem, 4.6vw, 3.4rem); font-weight: 600; letter-spacing: -.045em; line-height: 1; }
+    h1 .dot { color: var(--accent); }
+    .lede { margin: 0; color: var(--muted); font-size: 16px; max-width: 560px; }
+    .stats { display: flex; gap: 20px; flex-wrap: wrap; font: 500 12px var(--mono); color: var(--faint); }
+    .stats b { color: var(--text); font-weight: 500; }
+
+    /* controls */
+    .controls { position: sticky; top: 60px; z-index: 30; background: rgba(8,9,10,.92); backdrop-filter: blur(14px); padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .search { position: relative; display: block; }
+    .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); }
+    .search input { width: 100%; height: 40px; padding: 0 44px 0 38px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface); outline: none; font-size: 14px; }
+    .search input:focus { border-color: rgba(61,255,162,.5); box-shadow: 0 0 0 3px rgba(61,255,162,.08); }
+    .search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 500 11px var(--mono); color: var(--faint); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }
+    .chips { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font: 500 13px var(--sans); color: var(--muted); cursor: pointer; }
+    .chip:hover { color: var(--text); border-color: var(--line-2); }
+    .chip svg { width: 14px; height: 14px; }
+    .chip[aria-pressed="true"] { color: #04140b; background: var(--accent); border-color: var(--accent); }
+    .chip small { font: 500 11px var(--mono); opacity: .7; }
+
+    /* shell */
+    .shell { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 20px; padding: 20px 0 48px; align-items: start; }
+
+    /* list */
+    .group { margin-bottom: 18px; }
+    .group-h { display: flex; align-items: center; gap: 8px; padding: 0 4px 8px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+    .group-h svg { width: 14px; height: 14px; color: var(--muted); }
+    .group-h small { margin-left: auto; font-size: 11px; }
+    .rows { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+    .row { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 11px 12px 11px 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+    .row:last-child { border-bottom: 0; }
+    .row:hover { background: rgba(255,255,255,.025); }
+    .row[aria-selected="true"] { background: linear-gradient(90deg, var(--accent-dim), transparent 85%); }
+    .row[aria-selected="true"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: var(--accent); }
+    .row:focus-visible { outline: 2px solid rgba(61,255,162,.5); outline-offset: -2px; }
+    .ico { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+    .ico svg { width: 18px; height: 18px; }
+    .row[aria-selected="true"] .ico { color: var(--accent); border-color: rgba(61,255,162,.25); }
+    .row-main { min-width: 0; }
+    .row-name { display: flex; align-items: center; gap: 6px; font: 500 13.5px var(--mono); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-desc { font-size: 13px; line-height: 1.45; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+    .row-side { display: flex; align-items: center; gap: 4px; padding-top: 1px; }
+    .mini { font: 500 10.5px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--faint); }
+    .mini.ps { color: var(--info); border-color: rgba(127,184,255,.2); }
+    .mini.sh { color: var(--accent); border-color: rgba(61,255,162,.2); }
+    .qcopy { width: 30px; height: 30px; border-radius: 7px; border: 1px solid transparent; background: none; display: grid; place-items: center; color: var(--faint); cursor: pointer; opacity: 0; transition: opacity .12s, color .12s, border-color .12s; }
+    .row:hover .qcopy, .row[aria-selected="true"] .qcopy, .qcopy:focus-visible { opacity: 1; }
+    .qcopy:hover { color: var(--text); border-color: var(--line-2); }
+    .qcopy.done { color: var(--accent); opacity: 1; }
+    .empty { display: none; text-align: center; padding: 48px 16px; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 12px; }
+    .empty b { display: block; color: var(--text); margin-bottom: 4px; }
+
+    /* panel */
+    .panel { position: sticky; top: calc(var(--stick) + 20px); max-height: calc(100vh - var(--stick) - 40px); overflow-y: auto; border: 1px solid var(--line-2); border-radius: 14px; background: var(--surface); scrollbar-width: thin; }
+    .p-head { padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+    .p-back { display: none; margin-bottom: 14px; }
+    .p-title { display: flex; gap: 14px; align-items: flex-start; }
+    .p-title .ico { width: 44px; height: 44px; border-radius: 11px; color: var(--accent); border-color: rgba(61,255,162,.25); background: var(--accent-dim); }
+    .p-title .ico svg { width: 22px; height: 22px; }
+    .p-title h2 { margin: 0 0 6px; font: 500 20px var(--mono); letter-spacing: -.01em; word-break: break-all; }
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .badge { font: 500 11px var(--mono); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); background: var(--surface-2); }
+    .badge.sh { color: var(--accent); background: var(--accent-dim); border-color: rgba(61,255,162,.2); }
+    .badge.ps { color: var(--info); background: rgba(127,184,255,.08); border-color: rgba(127,184,255,.2); }
+    .badge.root { color: var(--warn); background: rgba(255,181,71,.08); border-color: rgba(255,181,71,.2); }
+    .badge.plain { background: none; border-color: transparent; color: var(--faint); padding: 2px 0; }
+    .p-desc { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+    .p-links { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+    .p-sec { padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .p-sec:last-child { border-bottom: 0; }
+    .p-sec h3 { margin: 0 0 12px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 8px; padding: 2px; background: var(--bg); text-transform: none; letter-spacing: 0; }
+    .seg button { border: 0; background: none; height: 26px; padding: 0 10px; border-radius: 6px; font: 500 12px var(--sans); color: var(--muted); cursor: pointer; }
+    .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-2); }
+    .cmd { border: 1px solid var(--line); border-radius: 10px; background: var(--code); overflow: hidden; }
+    .cmd code { display: block; padding: 14px 16px; font: 400 13px/1.7 var(--mono); color: #c9cdc9; white-space: pre-wrap; word-break: break-all; }
+    .cmd code .p { color: var(--faint); user-select: none; }
+    .cmd code .u { color: var(--info); }
+    .cmd code .k { color: var(--accent); }
+    .cmd code .a { color: var(--warn); }
+    .cmd-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-top: 1px solid var(--line); background: #0a0c0c; font-size: 12.5px; color: var(--faint); }
+    .copy-main { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #04140b; font: 600 13px var(--sans); cursor: pointer; flex: none; }
+    .copy-main:hover { background: #6bffbb; }
+
+    .opt-list { display: grid; gap: 10px; }
+    .opt { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+    .opt label { font: 500 12.5px var(--mono); color: var(--text); }
+    .opt .hint { grid-column: 2; font-size: 12.5px; color: var(--faint); }
+    .opt input[type=text] { height: 34px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); padding: 0 10px; font: 400 13px var(--mono); outline: none; width: 100%; }
+    .opt input[type=text]:focus { border-color: rgba(61,255,162,.5); }
+    .opt input[type=text]::placeholder { color: var(--faint); }
+    .opt .chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+    .opt input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+    .reset { background: none; border: 0; color: var(--muted); font: 500 12px var(--sans); cursor: pointer; text-transform: none; letter-spacing: 0; padding: 0; }
+    .reset:hover { color: var(--text); }
+
+    .about { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .steps, .uses { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; font-size: 14px; color: #c3c7c5; }
+    .steps { counter-reset: s; }
+    .steps li, .uses li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
+    .steps li { counter-increment: s; }
+    .steps li::before { content: counter(s); font: 500 11px/20px var(--mono); text-align: center; width: 20px; height: 20px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--muted); }
+    .uses li::before { content: "→"; font: 500 13px/20px var(--mono); color: var(--accent); text-align: center; }
+    dl.facts { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 18px; font-size: 13px; }
+    dl.facts dt { color: var(--faint); font: 500 12px var(--mono); }
+    dl.facts dd { margin: 0; font: 400 12.5px var(--mono); color: var(--text); word-break: break-all; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { font: 500 11px var(--mono); padding: 2px 7px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+
+    .notice { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,181,71,.2); background: rgba(255,181,71,.05); color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+    .notice svg { color: var(--warn); margin-top: 2px; }
+    .notice b { color: var(--text); font-weight: 500; }
+
+    footer { border-top: 1px solid var(--line); padding: 24px 0 36px; }
+    .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--faint); }
+    .foot a:hover { color: var(--text); }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--surface-2); border: 1px solid rgba(61,255,162,.35); padding: 10px 16px; border-radius: 10px; font: 500 13px var(--sans); box-shadow: 0 20px 40px rgba(0,0,0,.5); transition: opacity .2s, transform .2s; z-index: 80; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast b { color: var(--accent); font-weight: 500; }
+
+    @media (max-width: 1100px) { .about { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .qcopy { opacity: 1; }
+      .panel { position: fixed; inset: 0; top: 0; max-height: none; height: 100%; z-index: 70; border-radius: 0; border: 0; transform: translateY(100%); transition: transform .25s ease; visibility: hidden; }
+      .panel.open { transform: none; visibility: visible; }
+      body.sheet { overflow: hidden; }
+      .p-back { display: inline-flex; }
+      .p-head, .p-sec { padding-left: 16px; padding-right: 16px; }
+      .opt { grid-template-columns: 1fr; }
+      .opt .hint { grid-column: 1; }
+      .hide-sm { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <path id="nx-n" d="M10 8H16L32 30V8H38V40H32L16 18V40H10Z"/>
+      <clipPath id="nx-top"><rect x="0" y="0" width="48" height="18"/></clipPath>
+      <clipPath id="nx-mid"><rect x="0" y="20" width="48" height="8"/></clipPath>
+      <clipPath id="nx-bot"><rect x="0" y="30" width="48" height="18"/></clipPath>
+      <symbol id="nx-mark" viewBox="0 0 48 48">
+        <g clip-path="url(#nx-top)"><use href="#nx-n" fill="currentColor"/></g>
+        <g clip-path="url(#nx-mid)"><use href="#nx-n" style="fill:#3dffa2" transform="translate(4 0)"/></g>
+        <g clip-path="url(#nx-bot)"><use href="#nx-n" fill="currentColor"/></g>
+      </symbol>
+      <!-- category icons (original, stroke style) -->
+      <symbol id="c-all" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></g></symbol>
+      <symbol id="c-linux" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15H17"/></g></symbol>
+      <symbol id="c-windows" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7M12 16.5v4M2.5 7.5h19"/></g></symbol>
+      <symbol id="c-sentinel" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8l7.5 3v5.6c0 4.6-3.1 8.4-7.5 9.8-4.4-1.4-7.5-5.2-7.5-9.8V5.8z"/><path d="M8.6 11.8l2.4 2.4 4.4-4.6"/></g></symbol>
+      <symbol id="c-firewall" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="M2.5 9.3h19M2.5 14.7h19M9 4v5.3M15 9.3v5.4M9 14.7V20"/></g></symbol>
+      <symbol id="c-network" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2.3"/><circle cx="5" cy="18.5" r="2.3"/><circle cx="19" cy="18.5" r="2.3"/><path d="M10.8 7l-4.6 9.4M13.2 7l4.6 9.4M7.3 18.5h9.4"/></g></symbol>
+      <!-- ui icons -->
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g></symbol>
+      <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.56 9.56 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    </defs>
+  </svg>
+
+  <header>
+    <div class="wrap nav">
+      <a class="logo" href="#" aria-label="NoxCipher Scripts">
+        <svg aria-hidden="true"><use href="#nx-mark"/></svg>
+        <span class="logo-word">nox<span>cipher</span></span>
+        <span class="logo-sub">/scripts</span>
+      </a>
+      <div class="nav-right">
+        <a class="btn hide-sm" href="https://noxcipher.site">Main site</a>
+        <a class="btn" id="repoLink" href="#" target="_blank" rel="noopener"><svg class="i"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <div class="label">Script library</div>
+        <h1>Copy. Paste. Run<span class="dot">.</span></h1>
+        <p class="lede">Ops and security scripts for Linux, Windows, Sentinel and firewalls, pulled straight from one public repo.</p>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="controls" id="controls">
+      <div class="wrap">
+        <label class="search">
+          <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="q" type="search" placeholder="Search by name, tag or problem, e.g. &quot;logs stopped&quot;" autocomplete="off" aria-label="Search scripts" />
+          <kbd class="hide-sm">/</kbd>
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="Categories"></div>
+      </div>
+    </div>
+
+    <div class="wrap shell">
+      <div>
+        <div id="list" role="listbox" aria-label="Scripts"></div>
+        <div class="empty" id="empty"><b>No scripts match</b>Try a different search or category.</div>
+        <div class="notice">
+          <svg class="i" aria-hidden="true"><use href="#i-warn"/></svg>
+          <div><b>Read before you run.</b> Piping into a shell runs the script with your permissions. Switch to <b>Inspect first</b> to review it before it executes.</div>
+        </div>
+      </div>
+      <aside class="panel" id="panel" aria-live="polite"></aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>&copy; <span id="year"></span> NoxCipher &middot; scripts are provided as-is, MIT licensed</span>
+      <a href="https://noxcipher.site">noxcipher.site</a>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    /* ---------- config: point these at the real repo ---------- */
+    const REPO = 'xdemhdx/noxcipher-scripts';
+    const BRANCH = 'main';
+    const RAW = p => `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${p}`;
+    const SRC = p => `https://github.com/${REPO}/blob/${BRANCH}/${p}`;
+
+    /* Options that are on/off switches (everything else takes a value) */
+    const SWITCHES = new Set(['--dry-run', '--send-test', '--json', '--rollback', '--udp', '-WhatIf', '-Json']);
+
+    /* Category -> icon */
+    const ICON = { Linux: 'c-linux', Windows: 'c-windows', Sentinel: 'c-sentinel', Firewall: 'c-firewall', Network: 'c-network', All: 'c-all' };
+
+    /* ---------- catalogue (placeholder data; later load from scripts.json in the repo) ---------- */
+    const SCRIPTS = [
+      { name: 'log-rotate.sh', path: 'linux/log-rotate.sh', cat: 'Linux', sh: 'bash', root: true,
+        desc: 'Rotate, compress and prune logs in any directory. Keeps N days and skips files still being written.',
+        does: ["Scans the target directory for *.log files older than today", "Skips any file still held open by a process (checked with lsof)", "Compresses rotated files and appends a date stamp", "Deletes archives older than the --keep window", "Prints a summary of files rotated and space freed"],
+        when: ["An app writes its own logs and has no logrotate config", "A disk is filling up because of unbounded log growth", "You want a one-line cron job instead of a logrotate rule"],
+        args: '--path /var/log/myapp --keep 14',
+        opts: [['--path', 'Directory to rotate (required)'], ['--keep', 'Days to keep, default 7'], ['--compress', 'gzip | zstd, default gzip'], ['--dry-run', 'Show what would change']],
+        tags: ['logs', 'cron', 'disk'], ver: '1.4.0', updated: '2026-10-02', lines: 142 },
+      { name: 'disk-cleanup.sh', path: 'linux/disk-cleanup.sh', cat: 'Linux', sh: 'bash', root: true,
+        desc: 'Clear package caches, old journals and orphaned temp files, then print reclaimed space.',
+        does: ["Cleans apt/dnf/yum package caches", "Vacuums the systemd journal down to the retention you set", "Removes temp files older than 7 days from /tmp and /var/tmp", "Reports space reclaimed per step"],
+        when: ["A server raises a low-disk alert and you need space fast", "Routine monthly maintenance on long-lived VMs", "Before taking a snapshot or image to keep it small"],
+        args: '', opts: [['--journal-days', 'Vacuum systemd journal older than N days, default 14'], ['--dry-run', 'Report only']],
+        tags: ['disk', 'maintenance'], ver: '1.1.2', updated: '2026-09-18', lines: 88 },
+      { name: 'ssh-harden.sh', path: 'linux/ssh-harden.sh', cat: 'Linux', sh: 'bash', root: true,
+        desc: 'Apply a hardened sshd_config: no root login, key-only auth, modern ciphers. Backs up the original first.',
+        does: ["Backs up the current sshd_config with a timestamp", "Disables root login and password authentication", "Restricts ciphers, MACs and key exchange to modern algorithms", "Optionally moves SSH to a new port and sets an allow list", "Validates the config with sshd -t before restarting, and rolls back if it fails"],
+        when: ["Right after building a new internet-facing Linux server", "Closing a CIS or audit finding on SSH configuration", "After seeing brute-force attempts in auth.log"],
+        args: '--port 2222', opts: [['--port', 'Move SSH to a new port'], ['--allow-users', 'Comma-separated allow list'], ['--rollback', 'Restore the last backup']],
+        tags: ['hardening', 'ssh', 'CIS'], ver: '2.0.1', updated: '2026-09-30', lines: 211 },
+      { name: 'ufw-baseline.sh', path: 'linux/ufw-baseline.sh', cat: 'Linux', sh: 'bash', root: true,
+        desc: 'Default-deny inbound firewall with SSH allowed and logging on. Safe to re-run.',
+        does: ["Installs ufw if missing", "Sets default deny inbound and allow outbound", "Allows SSH (optionally only from a given CIDR) plus any extra ports", "Enables logging and turns the firewall on without dropping your session"],
+        when: ["A fresh VM has no host firewall at all", "Building a syslog/CEF forwarder that should only accept 514 and SSH", "Standardising host firewalls across a fleet"],
+        args: '--allow 443,514', opts: [['--allow', 'Extra inbound ports'], ['--ssh-from', 'Restrict SSH to a CIDR']],
+        tags: ['firewall', 'hardening'], ver: '1.0.3', updated: '2026-08-22', lines: 64 },
+      { name: 'cef-forwarder-check.sh', path: 'sentinel/cef-forwarder-check.sh', cat: 'Sentinel', sh: 'bash', root: true,
+        desc: 'Health check for a CEF/Syslog forwarder: AMA agent status, rsyslog listeners on 514, DCR association and a test message.',
+        does: ["Checks the Azure Monitor Agent service and its version", "Confirms rsyslog or syslog-ng is listening on the CEF port (TCP and UDP)", "Verifies the machine has a DCR associated and can reach the ingestion endpoint", "Optionally sends a test CEF event and tells you what to query in Sentinel", "Prints a pass/fail table with the fix for each failure"],
+        when: ["Firewall logs stopped showing up in CommonSecurityLog", "After onboarding a new forwarder, before telling the customer it is done", "Troubleshooting a ticket where \"the connector says connected but no data\""],
+        args: '', opts: [['--port', 'Listener port, default 514'], ['--send-test', 'Send a test CEF event'], ['--json', 'Machine-readable output']],
+        tags: ['AMA', 'CEF', 'rsyslog', 'troubleshooting'], ver: '3.2.0', updated: '2026-10-11', lines: 318 },
+      { name: 'cef-test-sender.sh', path: 'sentinel/cef-test-sender.sh', cat: 'Sentinel', sh: 'bash', root: false,
+        desc: 'Send sample FortiGate and PAN-OS style CEF messages to a forwarder to validate parsing in CommonSecurityLog.',
+        does: ["Builds realistic CEF messages in FortiGate and PAN-OS formats", "Sends them to the forwarder over TCP or UDP with logger", "Tags each message with a unique ID so you can find it", "Prints the KQL query to confirm the events landed and parsed"],
+        when: ["Validating a forwarder before the real firewall is pointed at it", "Testing a DCR transformation or parser change", "Demonstrating the log pipeline to a customer without real traffic"],
+        args: '--target 10.0.0.5 --count 20', opts: [['--target', 'Forwarder IP (required)'], ['--vendor', 'fortinet | paloalto | both'], ['--count', 'Messages to send, default 5']],
+        tags: ['CEF', 'testing', 'CommonSecurityLog'], ver: '1.2.0', updated: '2026-10-05', lines: 97 },
+      { name: 'Get-SentinelIngestion.ps1', path: 'sentinel/Get-SentinelIngestion.ps1', cat: 'Sentinel', sh: 'ps',
+        desc: 'Report billable GB per table for a workspace over the last N days, sorted by cost driver.',
+        does: ["Connects with your current Az context", "Queries the Usage table for billable data per table", "Calculates daily average and share of total", "Sorts by volume and optionally exports to CSV"],
+        when: ["A Sentinel bill jumped and you need to know which table caused it", "Preparing a cost review or commitment-tier recommendation", "Before and after adding a DCR filter, to measure the saving"],
+        args: '-WorkspaceId <id> -Days 30', opts: [['-WorkspaceId', 'Log Analytics workspace ID (required)'], ['-Days', 'Lookback, default 7'], ['-Csv', 'Export to CSV path']],
+        tags: ['cost', 'KQL', 'Az'], ver: '1.3.1', updated: '2026-09-27', lines: 156 },
+      { name: 'Export-AnalyticsRules.ps1', path: 'sentinel/Export-AnalyticsRules.ps1', cat: 'Sentinel', sh: 'ps',
+        desc: 'Export every analytics rule in a workspace to ARM/JSON for version control.',
+        does: ["Lists every analytics rule in the workspace through the REST API", "Exports each rule as a deployable ARM/JSON file", "Names files by rule name and kind (Scheduled, NRT, Fusion)", "Writes an index file with rule IDs, severity and tactics"],
+        when: ["Moving detections into Git for detection-as-code", "Taking a backup before a large rule change or content hub update", "Copying rules from one customer tenant to another"],
+        args: '-ResourceGroup rg-soc -Workspace law-soc', opts: [['-ResourceGroup', 'Resource group (required)'], ['-Workspace', 'Workspace name (required)'], ['-OutDir', 'Output folder, default ./rules']],
+        tags: ['detection-as-code', 'backup'], ver: '2.1.0', updated: '2026-10-08', lines: 203 },
+      { name: 'Enable-AuditPolicy.ps1', path: 'windows/Enable-AuditPolicy.ps1', cat: 'Windows', sh: 'ps', root: true,
+        desc: 'Turn on the advanced audit policy and process command-line logging that detections actually need.',
+        does: ["Backs up the current audit policy with auditpol", "Enables the advanced audit subcategories detections rely on (logon, process creation, account changes)", "Turns on command-line capture for event 4688 and PowerShell script block logging", "Raises Security log size so events are not overwritten"],
+        when: ["Detections are not firing because the events are never generated", "Onboarding servers to Sentinel or Defender for the first time", "Preparing a host for a purple-team or validation exercise"],
+        args: '', opts: [['-Profile', 'baseline | verbose, default baseline'], ['-WhatIf', 'Preview changes']],
+        tags: ['audit', 'event logs', 'hardening'], ver: '1.5.0', updated: '2026-09-12', lines: 174 },
+      { name: 'Export-EventLogs.ps1', path: 'windows/Export-EventLogs.ps1', cat: 'Windows', sh: 'ps', root: true,
+        desc: 'Collect Security, System, Sysmon and PowerShell logs into a timestamped zip for incident response.',
+        does: ["Exports Security, System, Application, Sysmon and PowerShell logs for the time window", "Adds host info, logged-on users and running processes", "Hashes every file and packs everything into one timestamped zip"],
+        when: ["Early in an incident, before logs roll over", "A machine is about to be reimaged and you need evidence first", "Sending logs to a third party for analysis"],
+        args: '-Hours 48', opts: [['-Hours', 'Lookback window, default 24'], ['-OutPath', 'Destination folder']],
+        tags: ['DFIR', 'triage'], ver: '1.0.4', updated: '2026-08-30', lines: 121 },
+      { name: 'Get-DefenderStatus.ps1', path: 'windows/Get-DefenderStatus.ps1', cat: 'Windows', sh: 'ps',
+        desc: 'Show Defender AV, tamper protection, ASR rules and MDE onboarding state in one table.',
+        does: ["Reads Defender AV state, signature age and engine version", "Checks tamper protection and real-time protection", "Lists ASR rules and whether each is in block, audit or off", "Confirms MDE onboarding state and sensor health"],
+        when: ["A device is missing from the Defender portal", "Auditing a device during an investigation", "Checking a baseline after rolling out policy through Intune"],
+        args: '', opts: [['-Json', 'Output JSON']],
+        tags: ['Defender', 'MDE', 'ASR'], ver: '1.2.2', updated: '2026-10-01', lines: 89 },
+      { name: 'fortigate-backup.sh', path: 'firewall/fortigate-backup.sh', cat: 'Firewall', sh: 'bash',
+        desc: 'Pull a FortiGate config backup over the REST API and keep the last N copies with a diff of changes.',
+        does: ["Calls the FortiGate REST API with a read-only token", "Downloads the full configuration with a timestamp", "Diffs it against the previous backup and prints what changed", "Deletes backups older than the retention count"],
+        when: ["You need scheduled config backups without FortiManager", "Before any firmware upgrade or major policy change", "Tracking who changed what between two dates"],
+        args: '--host 192.0.2.1 --keep 30', opts: [['--host', 'FortiGate address (required)'], ['--token', 'API token, or FGT_TOKEN env var'], ['--keep', 'Backups to retain']],
+        tags: ['FortiGate', 'backup', 'API'], ver: '1.3.0', updated: '2026-10-09', lines: 134 },
+      { name: 'panos-backup.sh', path: 'firewall/panos-backup.sh', cat: 'Firewall', sh: 'bash',
+        desc: 'Export running config from a Palo Alto firewall or Panorama via the XML API, with retention.',
+        does: ["Requests the running config through the PAN-OS XML API", "Saves it with the hostname and a timestamp", "Optionally exports the device state bundle as well", "Applies retention and prints a short change summary"],
+        when: ["Scheduled backups for firewalls not managed by Panorama", "Before an upgrade, HA change or migration", "Keeping config history in Git for audits"],
+        args: '--host 198.51.100.1', opts: [['--host', 'Firewall / Panorama address (required)'], ['--key', 'API key, or PAN_KEY env var'], ['--keep', 'Backups to retain']],
+        tags: ['Palo Alto', 'PAN-OS', 'backup'], ver: '1.1.0', updated: '2026-10-03', lines: 118 },
+      { name: 'fortigate-syslog-check.sh', path: 'firewall/fortigate-syslog-check.sh', cat: 'Firewall', sh: 'bash',
+        desc: 'Verify a FortiGate is sending CEF to your forwarder: settings, format, reachability and a live capture.',
+        does: ["Reads the FortiGate log setting (server, port, format, facility)", "Confirms the format is CEF and the reliable/TCP options match the forwarder", "Tests reachability from the firewall to the forwarder", "Captures a few seconds of traffic on the forwarder to prove packets arrive"],
+        when: ["FortiGate events are missing or arrive unparsed in Sentinel", "After changing log settings or the forwarder IP", "Proving to a customer which side of the pipeline is broken"],
+        args: '--host 192.0.2.1 --forwarder 10.0.0.5', opts: [['--host', 'FortiGate address'], ['--forwarder', 'Syslog / AMA forwarder IP']],
+        tags: ['FortiGate', 'CEF', 'troubleshooting'], ver: '0.9.1', updated: '2026-09-21', lines: 76 },
+      { name: 'port-check.sh', path: 'network/port-check.sh', cat: 'Network', sh: 'bash',
+        desc: 'Test TCP/UDP reachability to a list of hosts and ports, with timing. No nmap needed.',
+        does: ["Loops through every host and port pair", "Tests TCP with bash /dev/tcp, or UDP with a probe packet", "Measures connection time and prints a colour-coded table"],
+        when: ["A minimal box without nmap or telnet", "Checking firewall rules after a change request", "Confirming agents can reach collectors and endpoints"],
+        args: '--hosts 10.0.0.5,10.0.0.6 --ports 514,22', opts: [['--hosts', 'Comma-separated hosts'], ['--ports', 'Comma-separated ports'], ['--udp', 'Test UDP instead of TCP']],
+        tags: ['connectivity', 'troubleshooting'], ver: '1.0.0', updated: '2026-07-28', lines: 58 },
+      { name: 'tls-cert-check.sh', path: 'network/tls-cert-check.sh', cat: 'Network', sh: 'bash',
+        desc: 'Check certificate expiry, chain and protocol versions for one or many endpoints.',
+        does: ["Connects to each host and reads the certificate chain", "Reports days to expiry, issuer, SANs and chain completeness", "Lists which TLS versions the endpoint accepts", "Exits non-zero when a certificate is inside the warning window"],
+        when: ["Avoiding surprise expiries on VPN portals and public services", "Running as a cron or pipeline check for a list of endpoints", "Verifying a renewed certificate was actually deployed"],
+        args: '--host vpn.example.com --warn 30', opts: [['--host', 'Hostname or file of hostnames'], ['--warn', 'Warn when fewer days remain']],
+        tags: ['TLS', 'certificates', 'monitoring'], ver: '1.1.0', updated: '2026-09-05', lines: 92 }
+    ];
+
+    /* ---------- helpers ---------- */
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+    const slug = s => s.name.replace(/\.(sh|ps1)$/i, '').toLowerCase();
+    const file = p => p.split('/').pop();
+    const icon = (id, cls = '') => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+    // parse the example args into { flag: value | true }
+    function parseArgs(str) {
+      const out = {}, t = (str || '').split(/\s+/).filter(Boolean);
+      for (let i = 0; i < t.length; i++) {
+        if (/^-/.test(t[i])) {
+          const next = t[i + 1];
+          if (next && !/^-/.test(next)) { out[t[i]] = /^<.*>$/.test(next) ? '' : next; i++; }
+          else out[t[i]] = true;
+        }
+      }
+      return out;
+    }
+    const quote = (v, ps) => /[\s'"$;&|]/.test(v) ? (ps ? `'${v.replace(/'/g, "''")}'` : `'${v.replace(/'/g, `'\\''`)}'`) : v;
+    function argString(s, vals) {
+      const ps = s.sh === 'ps';
+      return s.opts.map(([f]) => {
+        const v = vals[f];
+        if (SWITCHES.has(f)) return v === true ? f : '';
+        return v ? `${f} ${quote(v, ps)}` : '';
+      }).filter(Boolean).join(' ');
+    }
+    function command(s, mode, args) {
+      const url = RAW(s.path), f = file(s.path), a = args ? ' ' + args : '';
+      if (s.sh === 'ps') {
+        if (mode === 'inspect') return `irm ${url} -OutFile ${f}; notepad ${f}; .\\${f}${a}`;
+        return a ? `& ([scriptblock]::Create((irm ${url})))${a}` : `irm ${url} | iex`;
+      }
+      const sudo = s.root ? 'sudo ' : '';
+      if (mode === 'inspect') return `curl -fsSL ${url} -o ${f} && less ${f} && ${sudo}bash ${f}${a}`;
+      return `curl -fsSL ${url} | ${sudo}bash${a ? ' -s --' + a : ''}`;
+    }
+    function highlight(cmd, args) {
+      let h = esc(cmd)
+        .replace(/(https:\/\/[^\s;|)]+)/g, '<span class="u">$1</span>')
+        .replace(/(^|\s|\()(curl|irm|iex|bash|sudo|less|notepad)(?=\s|$|\))/g, '$1<span class="k">$2</span>');
+      if (args) { const ea = esc(args); const i = h.lastIndexOf(ea); if (i > -1) h = h.slice(0, i) + `<span class="a">${ea}</span>` + h.slice(i + ea.length); }
+      return h;
+    }
+
+    /* ---------- state ---------- */
+    let mode = 'run', cat = 'All', q = '', sel = null;
+    const vals = {};               // per-script option values
+    SCRIPTS.forEach(s => vals[slug(s)] = parseArgs(s.args));
+    const defaultArgs = s => argString(s, parseArgs(s.args));
+
+    const list = document.getElementById('list'), empty = document.getElementById('empty'), panel = document.getElementById('panel');
+    const cats = ['All', ...new Set(SCRIPTS.map(s => s.cat))];
+
+    document.getElementById('repoLink').href = `https://github.com/${REPO}`;
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('stats').innerHTML =
+      `<span><b>${SCRIPTS.length}</b> scripts</span><span><b>${cats.length - 1}</b> categories</span><span>Updated <b>${SCRIPTS.map(s => s.updated).sort().pop()}</b></span>`;
+
+    /* sticky offset for the panel */
+    const setStick = () => document.documentElement.style.setProperty('--stick', (60 + document.getElementById('controls').offsetHeight) + 'px');
+    setStick(); addEventListener('resize', setStick);
+
+    /* ---------- chips ---------- */
+    const chips = document.getElementById('chips');
+    chips.innerHTML = cats.map(c => {
+      const n = c === 'All' ? SCRIPTS.length : SCRIPTS.filter(s => s.cat === c).length;
+      return `<button class="chip" data-cat="${esc(c)}" aria-pressed="${c === cat}">${icon(ICON[c] || 'c-all')}${esc(c)}<small>${n}</small></button>`;
+    }).join('');
+    chips.addEventListener('click', e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      cat = b.dataset.cat;
+      chips.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+      renderList();
+    });
+
+    /* ---------- list ---------- */
+    function filtered() {
+      const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+      return SCRIPTS.filter(s => (cat === 'All' || s.cat === cat) &&
+        terms.every(t => [s.name, s.desc, s.cat, s.sh === 'ps' ? 'powershell windows' : 'bash linux', ...s.tags, ...(s.does || []), ...(s.when || [])].join(' ').toLowerCase().includes(t)));
+    }
+    function renderList() {
+      const rows = filtered();
+      empty.style.display = rows.length ? 'none' : 'block';
+      const groups = cats.filter(c => c !== 'All').map(c => [c, rows.filter(s => s.cat === c)]).filter(g => g[1].length);
+      list.innerHTML = groups.map(([c, items]) => `
+        <section class="group">
+          <div class="group-h">${icon(ICON[c])}${esc(c)}<small>${items.length}</small></div>
+          <div class="rows">${items.map(s => `
+            <div class="row" role="option" tabindex="0" data-id="${slug(s)}" aria-selected="${sel === slug(s)}">
+              <div class="ico">${icon(ICON[s.cat])}</div>
+              <div class="row-main">
+                <div class="row-name">${esc(s.name)}</div>
+                <div class="row-desc">${esc(s.desc)}</div>
+              </div>
+              <div class="row-side">
+                <span class="mini ${s.sh === 'ps' ? 'ps' : 'sh'}">${s.sh === 'ps' ? 'PS' : 'sh'}</span>
+                <button class="qcopy" data-id="${slug(s)}" aria-label="Copy command for ${esc(s.name)}" title="Copy command">${icon('i-copy', 'i')}</button>
+              </div>
+            </div>`).join('')}
+          </div>
+        </section>`).join('');
+      if (rows.length && !rows.some(s => slug(s) === sel) && innerWidth > 900) select(slug(rows[0]), false);
+    }
+
+    /* ---------- panel ---------- */
+    function renderPanel() {
+      const s = SCRIPTS.find(x => slug(x) === sel); if (!s) { panel.innerHTML = ''; return; }
+      const v = vals[sel];
+      const opts = s.opts.map(([f, d]) => {
+        const id = `o-${sel}-${f.replace(/[^a-z0-9]/gi, '')}`;
+        const def = (d.match(/default ([^,;)]+)/i) || [])[1] || '';
+        if (SWITCHES.has(f)) return `<div class="opt"><label for="${id}">${esc(f)}</label><label class="chk"><input type="checkbox" id="${id}" data-f="${esc(f)}" ${v[f] === true ? 'checked' : ''}/> ${esc(d)}</label></div>`;
+        return `<div class="opt"><label for="${id}">${esc(f)}</label><input type="text" id="${id}" data-f="${esc(f)}" value="${esc(v[f] || '')}" placeholder="${esc(def || (/required/i.test(d) ? 'required' : 'optional'))}" spellcheck="false" autocomplete="off"/><span class="hint">${esc(d)}</span></div>`;
+      }).join('');
+      panel.innerHTML = `
+        <div class="p-head">
+          <button class="btn p-back" id="back">${icon('i-back', 'i')}All scripts</button>
+          <div class="p-title">
+            <div class="ico">${icon(ICON[s.cat])}</div>
+            <div>
+              <h2>${esc(s.name)}</h2>
+              <div class="badges">
+                <span class="badge ${s.sh === 'ps' ? 'ps' : 'sh'}">${s.sh === 'ps' ? 'PowerShell' : 'Bash'}</span>
+                ${s.root ? `<span class="badge root">needs ${s.sh === 'ps' ? 'admin' : 'sudo'}</span>` : ''}
+                <span class="badge">${esc(s.cat)}</span>
+                <span class="badge plain">v${esc(s.ver)} &middot; ${esc(s.updated)}</span>
+              </div>
+            </div>
+          </div>
+          <p class="p-desc">${esc(s.desc)}</p>
+          <div class="p-links">
+            <a class="btn" href="${SRC(s.path)}" target="_blank" rel="noopener">${icon('i-gh', 'i')}View source</a>
+            <a class="btn" href="${RAW(s.path)}" target="_blank" rel="noopener">Raw</a>
+            <button class="btn" id="share">${icon('i-link', 'i')}Copy link</button>
+          </div>
+        </div>
+        <div class="p-sec">
+          <h3><span>Run it</span>
+            <span class="seg" role="group" aria-label="Command style">
+              <button data-mode="run" aria-pressed="${mode === 'run'}">Quick run</button>
+              <button data-mode="inspect" aria-pressed="${mode === 'inspect'}">Inspect first</button>
+            </span>
+          </h3>
+          <div class="cmd">
+            <code id="cmd"></code>
+            <div class="cmd-foot"><span id="cmdNote"></span><button class="copy-main" id="copyMain">${icon('i-copy', 'i')}<span>Copy command</span></button></div>
+          </div>
+        </div>
+        ${s.opts.length ? `<div class="p-sec"><h3><span>Options</span><button class="reset" id="reset">Reset to example</button></h3><div class="opt-list">${opts}</div></div>` : ''}
+        <div class="p-sec">
+          <div class="about">
+            <div><h3>What it does</h3><ol class="steps">${(s.does || []).map(d => `<li>${esc(d)}</li>`).join('')}</ol></div>
+            <div><h3>When to use it</h3><ul class="uses">${(s.when || []).map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>
+          </div>
+        </div>
+        <div class="p-sec">
+          <h3>Details</h3>
+          <dl class="facts">
+            <dt>Path</dt><dd>${esc(s.path)}</dd>
+            <dt>Size</dt><dd>${s.lines} lines</dd>
+            <dt>Tags</dt><dd><div class="tags">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></dd>
+          </dl>
+        </div>`;
+      updateCmd();
+    }
+    function currentCmd(s) { return command(s, mode, argString(s, vals[slug(s)])); }
+    function updateCmd() {
+      const s = SCRIPTS.find(x => slug(x) === sel); if (!s) return;
+      const args = argString(s, vals[sel]);
+      const cmd = command(s, mode, args);
+      document.getElementById('cmd').innerHTML = `<span class="p">${s.sh === 'ps' ? 'PS&gt; ' : '$ '}</span>${highlight(cmd, args)}`;
+      const missing = s.opts.filter(([f, d]) => /required/i.test(d) && !SWITCHES.has(f) && !vals[sel][f]).map(o => o[0]);
+      document.getElementById('cmdNote').innerHTML = missing.length
+        ? `<span style="color:var(--warn)">Fill in ${esc(missing.join(', '))}</span>`
+        : (mode === 'inspect' ? 'Downloads, opens for review, then runs' : (s.sh === 'ps' ? 'Paste into PowerShell' : 'Paste into your terminal'));
+    }
+
+    function select(id, scroll = true, open = false) {
+      sel = id;
+      list.querySelectorAll('.row').forEach(r => r.setAttribute('aria-selected', r.dataset.id === id));
+      renderPanel();
+      panel.scrollTop = 0;
+      try { history.replaceState(null, '', '#' + id); } catch {}
+      if (open && innerWidth <= 900) { panel.classList.add('open'); document.body.classList.add('sheet'); }
+    }
+    function closeSheet() { panel.classList.remove('open'); document.body.classList.remove('sheet'); }
+
+    /* ---------- events ---------- */
+    list.addEventListener('click', e => {
+      const qb = e.target.closest('.qcopy');
+      if (qb) { const s = SCRIPTS.find(x => slug(x) === qb.dataset.id); return copy(currentCmd(s), s.name, qb); }
+      const row = e.target.closest('.row'); if (row) select(row.dataset.id, false, true);
+    });
+    list.addEventListener('keydown', e => {
+      const row = e.target.closest('.row'); if (!row) return;
+      const rows = [...list.querySelectorAll('.row')], i = rows.indexOf(row);
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(row.dataset.id, false, true); }
+      if (e.key === 'ArrowDown' && rows[i + 1]) { e.preventDefault(); rows[i + 1].focus(); select(rows[i + 1].dataset.id); }
+      if (e.key === 'ArrowUp' && rows[i - 1]) { e.preventDefault(); rows[i - 1].focus(); select(rows[i - 1].dataset.id); }
+    });
+    panel.addEventListener('click', e => {
+      const s = SCRIPTS.find(x => slug(x) === sel);
+      if (e.target.closest('#back')) return closeSheet();
+      if (e.target.closest('#copyMain')) return copy(currentCmd(s), s.name, e.target.closest('#copyMain'));
+      if (e.target.closest('#share')) return copy(location.href.split('#')[0] + '#' + sel, 'link to ' + s.name, e.target.closest('#share'), true);
+      if (e.target.closest('#reset')) { vals[sel] = parseArgs(s.args); return renderPanel(); }
+      const m = e.target.closest('.seg button');
+      if (m) { mode = m.dataset.mode; panel.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === m)); updateCmd(); }
+    });
+    panel.addEventListener('input', e => {
+      const f = e.target.dataset.f; if (!f) return;
+      vals[sel][f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value.trim();
+      updateCmd();
+    });
+
+    /* copy */
+    const toast = document.getElementById('toast'); let tt;
+    async function copy(text, label, btn, isLink) {
+      let ok = false;
+      try { await navigator.clipboard.writeText(text); ok = true; }
+      catch {
+        const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch {} ta.remove();
+      }
+      toast.innerHTML = ok ? `<b>Copied</b>&nbsp; ${esc(label)}${!isLink && mode === 'inspect' ? ' (inspect first)' : ''}` : 'Copy blocked by the browser';
+      toast.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('show'), 1800);
+      if (ok && btn) {
+        const u = btn.querySelector('use'), t = btn.querySelector('span'), old = t && t.textContent;
+        btn.classList.add('done'); if (u) u.setAttribute('href', '#i-check'); if (t) t.textContent = 'Copied';
+        setTimeout(() => { btn.classList.remove('done'); if (u) u.setAttribute('href', isLink ? '#i-link' : '#i-copy'); if (t) t.textContent = old; }, 1500);
+      }
+    }
+
+    /* search */
+    const input = document.getElementById('q');
+    input.addEventListener('input', () => { q = input.value; renderList(); });
+    addEventListener('keydown', e => {
+      const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+      if (e.key === '/' && !typing) { e.preventDefault(); input.focus(); }
+      if (e.key === 'Escape') {
+        if (panel.classList.contains('open')) closeSheet();
+        else if (document.activeElement === input) { input.value = ''; q = ''; renderList(); input.blur(); }
+      }
+    });
+
+    /* init: deep link support (#log-rotate) */
+    const fromHash = decodeURIComponent(location.hash.slice(1));
+    renderList();
+    if (SCRIPTS.some(s => slug(s) === fromHash)) select(fromHash, false, true);
+    else if (innerWidth > 900) select(slug(filtered()[0]), false);
+  })();
+  </script>
+</body>
+</html>
